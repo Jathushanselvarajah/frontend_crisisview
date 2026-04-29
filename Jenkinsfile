@@ -16,6 +16,15 @@ pipeline {
         string(name: 'SONAR_TOKEN_CREDENTIALS_ID', defaultValue: 'sonarqube-token', description: 'Jenkins SonarQube token credentials ID')
     }
 
+    environment {
+        FRONTEND_HOST = "${params.FRONTEND_HOST}"
+        FRONTEND_USER = "${params.FRONTEND_USER}"
+        REMOTE_APP_DIR = "${params.REMOTE_APP_DIR}"
+        FRONTEND_IMAGE = "${params.FRONTEND_IMAGE}"
+        NEXT_PUBLIC_API_URL = "${params.NEXT_PUBLIC_API_URL}"
+        SONAR_HOST_URL = "${params.SONAR_HOST_URL}"
+    }
+
     stages {
         stage('Checkout') {
             steps {
