@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 type Incident = {
   id: number;
@@ -9,7 +10,7 @@ type Incident = {
   longitude: number;
 };
 
-const API = "http://localhost:3001/incidents";
+const API = apiUrl("/incidents");
 
 export default function IncidentAdmin() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -23,7 +24,22 @@ export default function IncidentAdmin() {
   };
 
   useEffect(() => {
-    fetchIncidents();
+    let cancelled = false;
+
+    async function loadIncidents() {
+      const res = await fetch(API);
+      const data = await res.json();
+
+      if (!cancelled) {
+        setIncidents(data);
+      }
+    }
+
+    void loadIncidents();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleSubmit = async () => {

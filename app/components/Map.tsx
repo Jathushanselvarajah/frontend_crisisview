@@ -8,6 +8,7 @@ import {
   Popup,
 } from "react-leaflet";
 import L from "leaflet";
+import { apiUrl } from "../lib/api";
 
 type Incident = {
   id: number;
@@ -22,8 +23,12 @@ type Intervention = {
   id_technicien: number;
 };
 
-// Fix default marker icons (Leaflet bug in Next)
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+type LeafletDefaultIconPrototype = L.Icon.Default & {
+  _getIconUrl?: unknown;
+};
+
+// Fix default marker icons in Next.js.
+delete (L.Icon.Default.prototype as LeafletDefaultIconPrototype)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
@@ -67,9 +72,22 @@ export default function Map({
   const [interventions, setInterventions] = useState<Intervention[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3001/interventions")
-      .then((res) => res.json())
-      .then(setInterventions);
+    let cancelled = false;
+
+    async function loadInterventions() {
+      const res = await fetch(apiUrl("/interventions"));
+      const data = await res.json();
+
+      if (!cancelled) {
+        setInterventions(data);
+      }
+    }
+
+    void loadInterventions();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const defaultCenter: [number, number] = [48.8566, 2.3522]; // Paris fallback

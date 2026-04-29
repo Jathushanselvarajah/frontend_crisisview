@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 type Intervention = {
   id: number;
@@ -20,9 +21,9 @@ type Incident = {
   name: string;
 };
 
-const API_INT = "http://localhost:3001/interventions";
-const API_TECHNICIENS = "http://localhost:3001/techniciens";
-const API_INCIDENTS = "http://localhost:3001/incidents";
+const API_INT = apiUrl("/interventions");
+const API_TECHNICIENS = apiUrl("/techniciens");
+const API_INCIDENTS = apiUrl("/incidents");
 
 export default function InterventionsAdmin() {
   const [interventions, setInterventions] = useState<Intervention[]>([]);
@@ -50,7 +51,27 @@ export default function InterventionsAdmin() {
   };
 
   useEffect(() => {
-    fetchAll();
+    let cancelled = false;
+
+    async function loadAll() {
+      const [r, u, p] = await Promise.all([
+        fetch(API_INT).then((res) => res.json()),
+        fetch(API_TECHNICIENS).then((res) => res.json()),
+        fetch(API_INCIDENTS).then((res) => res.json()),
+      ]);
+
+      if (!cancelled) {
+        setInterventions(r);
+        setTechniciens(u);
+        setIncidents(p);
+      }
+    }
+
+    void loadAll();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ---------------- CREATE / UPDATE ----------------

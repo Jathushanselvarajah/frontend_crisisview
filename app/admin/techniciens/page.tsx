@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../lib/api";
 
 type Technicien = {
   id: number;
@@ -10,7 +11,7 @@ type Technicien = {
   phone: string;
 };
 
-const API = "http://localhost:3001/techniciens";
+const API = apiUrl("/techniciens");
 
 export default function TechniciensAdmin() {
   const [techniciens, setTechniciens] = useState<Technicien[]>([]);
@@ -30,7 +31,22 @@ export default function TechniciensAdmin() {
   };
 
   useEffect(() => {
-    fetchTechniciens();
+    let cancelled = false;
+
+    async function loadTechniciens() {
+      const res = await fetch(API);
+      const data = await res.json();
+
+      if (!cancelled) {
+        setTechniciens(data);
+      }
+    }
+
+    void loadTechniciens();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // ---------------- CREATE / UPDATE ----------------
